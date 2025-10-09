@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор дози опромінення</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f7f9fc; margin:20px; color:#222; font-size:18px; }
+  h1 { text-align:center; color:#004aad; font-size:26px; }
+  .container { max-width:480px; margin:0 auto; padding:20px; background:white; border-radius:15px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+  label { display:block; margin-top:15px; font-weight:bold; }
+  input, select { width:100%; padding:12px; margin-top:5px; border-radius:10px; border:1px solid #ccc; font-size:18px; background:#f2f2f2; }
+  button { width:100%; padding:14px; margin-top:20px; border:none; border-radius:10px; font-size:20px; font-weight:bold; cursor:pointer; }
+  .btn-calc { background:#0066ff; color:white; }
+  .btn-grey { background:#d9d9d9; color:#222; }
+  .btn-calc:hover { background:#004aad; }
+  .result { margin-top:25px; background:#e8f0fe; padding:18px; border-radius:12px; font-size:20px; text-align:center; }
+</style>
+</head>
+<body>
+<h1>Калькулятор дози опромінення</h1>
+
+<div class="container">
+  <label>Потужність дози через t годин після вибуху (мЗв/год):</label>
+  <input type="number" id="Pt" value="10">
+
+  <label>Час після вибуху (t, години):</label>
+  <input type="number" id="t" value="3">
+
+  <label>Початок опромінення (години):</label>
+  <select id="tStart" class="btn-grey">
+    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+    <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+    <option>12</option><option>15</option><option>18</option><option>21</option><option>24</option>
+    <option>48</option><option>72</option>
+  </select>
+
+  <label>Тривалість опромінення (години):</label>
+  <input type="number" id="duration" value="3" min="1" max="21">
+
+  <button class="btn-calc" onclick="calculate()">РОЗРАХУВАТИ</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+const tStartHours = [1,2,3,4,5,6,7,8,9,10,12,15,18,21,24,48,72];
+
+const coeffMatrix = [
+  [0.64,0.98,1.24,1.38,1.5,1.61,1.78,1.9,2,2.13,2.22,2.3,2.38,2.7,2.88,2.99,3.15,3.25,3.33,3.46,3.66],
+  [0.98,0.93,0.89,0.86,0.83,0.79,0.77,0.74,0.72,0.69,0.67,0.65,0.63,0.61,0.59,0.58,0.57,0.56,0.55,0.54,0.53],
+  [0.96,0.91,0.87,0.84,0.81,0.78,0.76,0.73,0.71,0.68,0.66,0.64,0.62,0.60,0.58,0.57,0.56,0.55,0.54,0.53,0.52],
+  [0.94,0.89,0.85,0.82,0.79,0.76,0.74,0.71,0.69,0.66,0.64,0.62,0.60,0.58,0.56,0.55,0.54,0.53,0.52,0.51,0.50],
+  [0.92,0.87,0.83,0.80,0.77,0.74,0.72,0.69,0.67,0.64,0.62,0.60,0.58,0.56,0.54,0.53,0.52,0.51,0.50,0.49,0.48],
+  [0.90,0.85,0.81,0.78,0.75,0.72,0.70,0.67,0.65,0.62,0.60,0.58,0.56,0.54,0.52,0.51,0.50,0.49,0.48,0.47,0.46],
+  [0.88,0.83,0.79,0.76,0.73,0.70,0.68,0.65,0.63,0.60,0.58,0.56,0.54,0.52,0.50,0.49,0.48,0.47,0.46,0.45,0.44],
+  [0.86,0.81,0.77,0.74,0.71,0.68,0.66,0.63,0.61,0.58,0.56,0.54,0.52,0.50,0.48,0.47,0.46,0.45,0.44,0.43,0.42],
+  [0.84,0.79,0.75,0.72,0.69,0.66,0.64,0.61,0.59,0.56,0.54,0.52,0.50,0.48,0.46,0.45,0.44,0.43,0.42,0.41,0.40],
+  [0.82,0.77,0.73,0.70,0.67,0.64,0.62,0.59,0.57,0.54,0.52,0.50,0.48,0.46,0.44,0.43,0.42,0.41,0.40,0.39,0.38],
+  [0.80,0.75,0.71,0.68,0.65,0.62,0.60,0.57,0.55,0.52,0.50,0.48,0.46,0.44,0.42,0.41,0.40,0.39,0.38,0.37,0.36],
+  [0.78,0.73,0.69,0.66,0.63,0.60,0.58,0.55,0.53,0.50,0.48,0.46,0.44,0.42,0.40,0.39,0.38,0.37,0.36,0.35,0.34],
+  [0.76,0.71,0.67,0.64,0.61,0.58,0.56,0.53,0.51,0.48,0.46,0.44,0.42,0.40,0.38,0.37,0.36,0.35,0.34,0.33,0.32],
+  [0.74,0.69,0.65,0.62,0.59,0.56,0.54,0.51,0.49,0.46,0.44,0.42,0.40,0.38,0.36,0.35,0.34,0.33,0.32,0.31,0.30],
+  [0.72,0.67,0.63,0.60,0.57,0.54,0.52,0.49,0.47,0.44,0.42,0.40,0.38,0.36,0.34,0.33,0.32,0.31,0.30,0.29,0.28],
+  [0.70,0.65,0.61,0.58,0.55,0.52,0.50,0.47,0.45,0.42,0.40,0.38,0.36,0.34,0.32,0.31,0.30,0.29,0.28,0.27,0.26],
+  [0.68,0.63,0.59,0.56,0.53,0.50,0.48,0.45,0.43,0.40,0.38,0.36,0.34,0.32,0.30,0.29,0.28,0.27,0.26,0.25,0.24]
+];
+
+function getCoeff(tStart, duration){
+  const rowIndex = tStartHours.indexOf(parseInt(tStart));
+  if(rowIndex === -1 || duration<1 || duration>21) return null;
+  return coeffMatrix[rowIndex][duration-1];
+}
+
+function calculate(){
+  const Pt = parseFloat(document.getElementById("Pt").value);
+  const t = parseFloat(document.getElementById("t").value);
+  const tStart = document.getElementById("tStart").value;
+  const duration = parseInt(document.getElementById("duration").value);
+  const resultDiv = document.getElementById("result");
+
+  if(isNaN(Pt)||isNaN(t)){
+    resultDiv.innerHTML = "❌ Введіть коректні дані";
+    return;
+  }
+
+  const P1 = Pt*Math.pow(t,1.2);
+  const K = getCoeff
