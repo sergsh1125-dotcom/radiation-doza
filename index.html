@@ -164,15 +164,6 @@
       });
     }
 
-    function exportToExcel() {
-      const wb = XLSX.utils.table_to_book(document.getElementById('doseTable'), { sheet: 'Дані' });
-      XLSX.writeFile(wb, 'результати_дози_АЕС.xlsx');
-    }
-
-    function copyResults() {
-      const text = document.getElementById('results').innerText;
-      navigator.clipboard.writeText(text);
-      alert('Результат скопійовано!');
-    }
+    
   </script></body>
 </html>
