@@ -67,22 +67,10 @@
 
 <label>Коефіцієнт захисту:</label><br> <select id="Kz"> <option value="1">1</option> <option value="2">2</option> <option value="4">4</option> <option value="10">10</option> <option value="50">50</option> <option value="100">100</option> <option value="500">500</option> </select><br>
 
-<button onclick="calculateDose()">Розрахувати дозу</button> <button onclick="exportToExcel()">Зберегти в Excel (CSV)</button> <button onclick="copyResults()">Копіювати результат</button>
+<button onclick="calculateDose()">Розрахувати дозу:<br>
 
   <h2>Результати</h2>
-  <p id="results"></p>  <h3>Графік зменшення потужності дози</h3>
-  <canvas id="doseChart"></canvas>  <h3>Таблиця розрахунків</h3>
-  <table id="doseTable">
-    <thead>
-      <tr>
-        <th>Час (год)</th>
-        <th>Потужність на початку інтервалу (мЗв/год)</th>
-        <th>Доза за інтервал (мЗв)</th>
-        <th>Накопичена доза (мЗв)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>  <script>
+  
     function calculateDose() {
       const Pt = parseFloat(document.getElementById('Pt').value);
       const t = parseFloat(document.getElementById('t').value);
@@ -99,7 +87,7 @@
       const P1 = Pt * Math.pow(t, 0.4);
 
       // Формула для дози D = P1/0.6 * (Ta^-0.4 - Tb^-0.4) / Kz
-      const D = 5 * P1 * (Math.pow(Ta, -0.4) - Math.pow(Tb, -0.4)) / Kz;
+      const D = P1/0.6 * (Math.pow(Ta, -0.4) - Math.pow(Tb, -0.4)) / Kz;
 
       document.getElementById('results').innerHTML = `
         <b>P1 (через 1 годину після аварії):</b> ${P1.toFixed(3)} мЗв/год<br>
@@ -115,7 +103,7 @@
 
       for (let hour = Ta; hour <= Tb; hour += step) {
         const Pstart = P1 * Math.pow(hour, -0.4);
-        const Dinterval = 5 * P1 * (Math.pow(hour, -0.4) - Math.pow(hour + step, -0.4)) / Kz;
+        const Dinterval = P1/0.6 * (Math.pow(hour, -0.4) - Math.pow(hour + step, -0.4)) / Kz;
         cumulative += Dinterval;
 
         const row = document.createElement('tr');
