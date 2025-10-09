@@ -98,7 +98,7 @@
       // Формула для P1 (через 1 годину після аварії)
       const P1 = Pt * Math.pow(t, 0.4);
 
-      // Формула для дози D = 5 * P1 * (Ta^-0.4 - Tb^-0.4) / Kz
+      // Формула для дози D = P1/0.6 * (Ta^-0.4 - Tb^-0.4) / Kz
       const D = 5 * P1 * (Math.pow(Ta, -0.4) - Math.pow(Tb, -0.4)) / Kz;
 
       document.getElementById('results').innerHTML = `
