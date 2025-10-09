@@ -1,178 +1,154 @@
-<!DOCTYPE html><html lang="uk">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Калькулятор дози після аварії на атомній електростанції</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f5f6fa;
-    }
-    h1 {
-      text-align: center;
-      color: #2f3640;
-    }
-    label, button, select, input {
-      font-size: 16px;
-      margin: 5px 0;
-    }
-    input, select {
-      padding: 5px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 14px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background-color: white;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      max-width: 600px;
-      height: 400px !important;
-    }
-  </style>
+    <title>Розрахунок Дози Опромінення (Аварія на АЕС)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 10px auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        h2 {
+            text-align: center;
+            font-size: 24px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            font-size: 18px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 25px;
+            padding: 12px 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Калькулятор дози після аварії на атомній електростанції</h1><label>Потужність дози під час вимірювання (мЗв/год):</label><br> <input type="number" id="Pt" step="0.001"><br>
 
-<label>Час вимірювання Pt після аварії (годин):</label><br> <input type="number" id="t" step="0.1"><br>
+    <h2>Розрахунок дози опромінення (Аварія на АЕС)</h2>
 
-<label>Початок опромінення після аварії (годин):</label><br> <input type="number" id="Ta" step="0.1"><br>
+    <label for="Pt">Потужність дози при замірі (Pt, мЗв/год):</label>
+    <input type="number" id="Pt" value="0">
 
-<label>Кінець опромінення після аварії (годин):</label><br> <input type="number" id="Tb" step="0.1"><br>
+    <label for="t_izmereniya">Час заміру (t, години після аварії):</label>
+    <input type="number" id="t_izmereniya" value="0">
 
-<label>Коефіцієнт захисту:</label><br> <select id="Kz"> <option value="1">1</option> <option value="2">2</option> <option value="4">4</option> <option value="10">10</option> <option value="50">50</option> <option value="100">100</option> <option value="500">500</option> </select><br>
+    <label for="t_nachalo">Початок опромінення (t_поч, години після аварії):</label>
+    <input type="number" id="t_nachalo" value="0">
 
-<button onclick="calculateDose()">Розрахувати дозу</button> <button onclick="exportToExcel()">Зберегти в Excel (CSV)</button> <button onclick="copyResults()">Копіювати результат</button>
+    <label for="t_konec">Кінець опромінення (t_кін, години після аварії):</label>
+    <input type="number" id="t_konec" value="0">
+    
+    <label for="Kz">Коефіцієнт захисту (Kз):</label>
+    <select id="Kz">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+        <option value="4">4</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+        <option value="400">400</option>
+        <option value="500">500</option>
+    </select>
 
-  <h2>Результати</h2>
-  <p id="results"></p>  <h3>Графік зменшення потужності дози</h3>
-  <canvas id="doseChart"></canvas>  <h3>Таблиця розрахунків</h3>
-  <table id="doseTable">
-    <thead>
-      <tr>
-        <th>Час (год)</th>
-        <th>Потужність на початку інтервалу (мЗв/год)</th>
-        <th>Доза за інтервал (мЗв)</th>
-        <th>Накопичена доза (мЗв)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>  <script>
-    function calculateDose() {
-      const Pt = parseFloat(document.getElementById('Pt').value);
-      const t = parseFloat(document.getElementById('t').value);
-      const Ta = parseFloat(document.getElementById('Ta').value);
-      const Tb = parseFloat(document.getElementById('Tb').value);
-      const Kz = parseFloat(document.getElementById('Kz').value);
+    <button onclick="performCalculation()">Розрахувати дозу</button>
 
-      if (isNaN(Pt) || isNaN(t) || isNaN(Ta) || isNaN(Tb) || isNaN(Kz)) {
-        alert('Будь ласка, заповніть усі поля.');
-        return;
-      }
+    <div id="results">
+        <p><strong>P1 (Потужність через 1 годину):</strong> <span id="P1_result">-</span> мЗв/год</p>
+        <p><strong>D (Доза зовнішня, без захисту):</strong> <span id="D_external_result">-</span> мЗв</p>
+        <p><strong>D (Доза фактична, з Kз):</strong> <span id="Dose_result">-</span> мЗв</p>
+        <p style="font-size: 14px; color: #555;">(Коефіцієнт спаду $n=0.4$ для АЕС)</p>
+    </div>
 
-      // Формула для P1 (через 1 годину після аварії)
-      const P1 = Pt * Math.pow(t, 0.4);
+    <script>
+        // Коефіцієнт спаду для АВАРІЇ НА АЕС
+        const N_COEFFICIENT = 0.4; 
 
-      // Формула для дози D =  P1/0.6 * (Ta^-0.4 - Tb^-0.4) / Kz
-      const D = P1/0.6 * (Math.pow(Ta, -0.4) - Math.pow(Tb, -0.4)) / Kz;
+        // Функція для розрахунку дози (D) на відкритій місцевості
+        function calculateDoseExternal(P1, t_nach, t_kon) {
+            const n = N_COEFFICIENT;
+            const exponent = 1 - n; // 1 - 0.4 = 0.6
 
-      document.getElementById('results').innerHTML = `
-        <b>P1 (через 1 годину після аварії):</b> ${P1.toFixed(3)} мЗв/год<br>
-        <b>D (доза від Ta до Tb):</b> ${D.toFixed(3)} мЗв
-      `;
+            // Формула інтегрування
+            const first_term = (P1 * Math.pow(t_nach, exponent)) / exponent;
+            const second_term = (t_nach / t_kon);
+            
+            // Захист від некоректних даних
+            if (t_nach >= t_kon || P1 <= 0 || t_nach <= 0) return 0;
 
-      // Таблиця і графік
-      const tableBody = document.querySelector('#doseTable tbody');
-      tableBody.innerHTML = '';
-      const step = 1;
-      let cumulative = 0;
-      const dataPoints = [];
-
-      for (let hour = Ta; hour <= Tb; hour += step) {
-        const Pstart = P1 * Math.pow(hour, -0.4);
-        const Dinterval = P1/0.6 * (Math.pow(hour, -0.4) - Math.pow(hour + step, -0.4)) / Kz;
-        cumulative += Dinterval;
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${hour.toFixed(0)}</td>
-          <td>${Pstart.toFixed(3)}</td>
-          <td>${Dinterval.toFixed(3)}</td>
-          <td>${cumulative.toFixed(3)}</td>
-        `;
-        tableBody.appendChild(row);
-
-        dataPoints.push({ x: hour, y: Pstart });
-      }
-
-      // Графік
-      const ctx = document.getElementById('doseChart').getContext('2d');
-      if (window.doseChart) window.doseChart.destroy();
-      window.doseChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          datasets: [{
-            label: 'Потужність дози (мЗв/год)',
-            data: dataPoints,
-            borderColor: 'blue',
-            borderWidth: 2,
-            fill: false,
-            pointRadius: 4,
-            pointBackgroundColor: 'red'
-          }]
-        },
-        options: {
-          scales: {
-            x: {
-              type: 'linear',
-              title: { display: true, text: 'Час після аварії (год)' },
-              ticks: {
-                stepSize: 1,
-                callback: function(value) { return value.toFixed(0); }
-              }
-            },
-            y: {
-              title: { display: true, text: 'Потужність дози (мЗв/год)' }
-            }
-          }
+            const D = first_term * (1 - Math.pow(second_term, exponent));
+            return D;
         }
-      });
-    }
 
-    function exportToExcel() {
-      const wb = XLSX.utils.table_to_book(document.getElementById('doseTable'), { sheet: 'Дані' });
-      XLSX.writeFile(wb, 'результати_дози_АЕС.xlsx');
-    }
+        function performCalculation() {
+            // Зчитування даних
+            const Pt = parseFloat(document.getElementById('Pt').value);
+            const t_izmereniya = parseFloat(document.getElementById('t_izmereniya').value);
+            const t_nachalo = parseFloat(document.getElementById('t_nachalo').value);
+            const t_konec = parseFloat(document.getElementById('t_konec').value);
+            const Kz = parseFloat(document.getElementById('Kz').value);
 
-    function copyResults() {
-      const text = document.getElementById('results').innerText;
-      navigator.clipboard.writeText(text);
-      alert('Результат скопійовано!');
-    }
-  </script></body>
+            // Перевірка введених даних
+            if (isNaN(Pt) || isNaN(t_izmereniya) || isNaN(t_nachalo) || isNaN(t_konec) || t_izmereniya <= 0 || t_nachalo <= 0 || t_konec <= 0 || t_nachalo >= t_konec || isNaN(Kz) || Kz < 1) {
+                document.getElementById('P1_result').textContent = 'Помилка введення!';
+                document.getElementById('D_external_result').textContent = '—';
+                document.getElementById('Dose_result').textContent = 'Перевірте дані.';
+                return;
+            }
+
+            // 1. Розрахунок P1. Формула: P1 = Pt * t^n
+            const n = N_COEFFICIENT;
+            const P1 = Pt * Math.pow(t_izmereniya, n);
+
+            // 2. Розрахунок Дози D на відкритій місцевості
+            const D_external_mSv = calculateDoseExternal(P1, t_nachalo, t_konec);
+            
+            // 3. Розрахунок фактичної дози з урахуванням захисту (D_фактична = D_зовнішня / Kз)
+            const D_actual_mSv = D_external_mSv / Kz;
+
+
+            // Виведення результатів
+            document.getElementById('P1_result').textContent = P1.toFixed(2);
+            document.getElementById('D_external_result').textContent = D_external_mSv.toFixed(2);
+            document.getElementById('Dose_result').textContent = D_actual_mSv.toFixed(2);
+        }
+    </script>
+
+</body>
 </html>
