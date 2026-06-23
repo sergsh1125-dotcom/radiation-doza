@@ -1,87 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
     <title>Калькулятор дози опромінення (АЕС)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Стилізація під Платформу ХБРЯ інцидентів */
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 10px auto;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            background-color: #0b0f19; /* Темний фон платформи */
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
             font-size: 16px;
         }
-        h2 {
-            text-align: center;
-            font-size: 24px;
-            color: #d9534f; /* Червоний колір для акценту на АЕС */
+        
+        .container {
+            max-width: 800px;
+            margin: 10px auto;
+            background: #121824; /* Темно-сіра підкладка блоків */
+            padding: 25px;
+            
+            /* ЖОВТА ОКАНТОВКА ПАНЕЛІ КАЛЬКУЛЯТОРА */
+            border: 2px solid #ffd700; 
+            
+            border-radius: 4px; /* Мінімалістичні закруглення */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
+
+        h2 {
+            color: #ffd700; /* Яскраво-жовтий фірмовий колір заголовків */
+            text-align: center;
+            font-size: 1.4em;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 15px;
+            letter-spacing: 0.5px;
+            margin-top: 0;
+        }
+        
+        h3 {
+            color: #ffd700;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            margin-top: 0;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
         label {
             display: block;
             margin-top: 15px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 1.05em;
+            color: #e2e8f0;
         }
+
         input[type="number"], select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-top: 5px;
-            box-sizing: border-box;
-            font-size: 18px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
+            background-color: #1a2333; /* Темне поле вводу */
+            border: 1px solid #ffd700; /* Жовтий контур */
             border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #ffffff;
+            outline: none;
         }
+
+        input[type="number"]:focus, select:focus {
+            background-color: #202b3d;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 25px;
         }
+
         button {
-            padding: 12px 18px;
-            color: white;
+            padding: 15px;
             border: none;
             border-radius: 4px;
+            font-size: 1em;
+            font-weight: bold;
+            text-transform: uppercase;
             cursor: pointer;
             width: 50%;
-            font-size: 20px;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s ease;
+            letter-spacing: 1px;
         }
+
+        /* Головна кнопка дії — Жовта */
         #calculate-button {
-            background-color: #5cb85c;
+            background-color: #ffd700;
+            color: #000000;
         }
         #calculate-button:hover {
-            background-color: #4cae4c;
+            background-color: #e6c200;
         }
+
+        /* Кнопка "Очистити" — Червона, як на панелі платформи */
         #clear-button {
-            background-color: #f0ad4e; /* Помаранчевий колір */
+            background-color: #990000;
+            color: #ffffff;
         }
         #clear-button:hover {
-            background-color: #ec971f;
+            background-color: #bd0000;
         }
+
+        /* Інформаційне вікно результатів */
         #results {
             margin-top: 25px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #e9e9e9;
+            padding: 20px;
+            background-color: #172433; /* Синявий відтінок інформаційного вікна */
+            border: 1px solid #ffd700;
             border-radius: 4px;
-            font-size: 18px;
+            font-size: 1.1em;
         }
+
+        #results p {
+            margin: 10px 0;
+            border-bottom: 1px solid #232d42;
+            padding-bottom: 8px;
+        }
+
+        #results p:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        #results strong {
+            color: #e2e8f0;
+        }
+
+        /* Кольорові акценти значений */
+        #P1_result, #D_external_result {
+            color: #4da6ff; /* Світло-блакитний для проміжних результатів */
+            font-weight: bold;
+        }
+
+        #Dose_result {
+            color: #26e681; /* Яскраво-зелений для фінальної фактичної дози */
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* Контейнер графіка */
         #decayChartContainer {
             margin-top: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #e9e9e9;
+            padding: 20px;
+            background-color: #111622;
+            border: 1px solid #232d42;
             border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
+<div class="container">
     <h2>Калькулятор дози опромінення (Аварія на АЕС)</h2>
 
     <label for="Pt">Потужність дози випромінювання за даними розвідки на час t після аварії (Pt, мЗв/год):</label>
@@ -116,192 +197,204 @@
     </div>
 
     <div id="results">
-        <p><strong>P1 (Потужність дози через 1 годину після аварії ):</strong> <span id="P1_result">-</span> мЗв/год</p>
-        <p><strong>D (Доза опромінення, отримана на відкритій місцевості):</strong> <span id="D_external_result">-</span> мЗв</p>
-        <p><strong>D (Доза опромінення, отримана з урахуванням Kз):</strong> <span id="Dose_result">-</span> мЗв</p>
-        <p style="font-size: 14px; color: #555;">(Коефіцієнт спаду $\mathbf{n=0.4}$ для АЕС)</p>
+        <p><strong>P1 (Потужність дози через 1 годину після аварії):</strong> <span id="P1_result">-</span> мЗв/год</p>
+        <p><strong>D (Доза опромінення на відкритій місцевості):</strong> <span id="D_external_result">-</span> мЗв</p>
+        <p><strong>D (Доза опромінення з урахуванням Kз):</strong> <span id="Dose_result">-</span> мЗв</p>
+        <p style="font-size: 14px; color: #a0aec0; margin-top: 15px; border: none; padding: 0;">(Коефіцієнт спаду $n=0.4$ для АЕС)</p>
     </div>
 
-    
     <div id="decayChartContainer">
         <h3>Графік спаду потужності дози</h3>
         <canvas id="decayChart"></canvas>
     </div>
+</div>
 
-    <script>
-        // *** ЗМІНА: Коефіцієнт спаду для АЕС
-        const N_COEFFICIENT = 0.4; 
-        let decayChart = null;
+<script>
+    // Коефіцієнт спаду для АЕС
+    const N_COEFFICIENT = 0.4; 
+    let decayChart = null;
 
-        /**
-         * Розраховує сумарну дозу D на відкритій місцевості.
-         * Формула: D = [P1 / (1-n)] * (t_кін^(1-n) - t_поч^(1-n))
-         * ПРИМІТКА: Для n=0.4, 1-n=0.6, тому порядок у дужках не змінюється.
-         */
-        function calculateDoseExternal(P1, t_nach, t_kon) {
-            const n = N_COEFFICIENT;
-            const exponent = 1 - n; // дорівнює 0.6
+    /**
+     * Розраховує сумарну дозу D на відкритій місцевості.
+     * Формула: D = [P1 / (1-n)] * (t_кін^(1-n) - t_поч^(1-n))
+     */
+    function calculateDoseExternal(P1, t_nach, t_kon) {
+        const n = N_COEFFICIENT;
+        const exponent = 1 - n; // дорівнює 0.6
 
-            if (t_nach >= t_kon || P1 <= 0 || t_nach <= 0) return 0;
-            
-            // D = [P1 / (1-n)] * (t_kon^(1-n) - t_nach^(1-n))
-            const D = (P1 / exponent) * (Math.pow(t_kon, exponent) - Math.pow(t_nach, exponent));
-
-            return D;
-        }
-
-        function performCalculation() {
-            const Pt = parseFloat(document.getElementById('Pt').value);
-            const t_izmereniya = parseFloat(document.getElementById('t_izmereniya').value);
-            const t_nachalo = parseFloat(document.getElementById('t_nachalo').value);
-            const t_konec = parseFloat(document.getElementById('t_konec').value);
-            const Kz = parseFloat(document.getElementById('Kz').value);
-
-            if (isNaN(Pt) || isNaN(t_izmereniya) || isNaN(t_nachalo) || isNaN(t_konec) || t_izmereniya <= 0 || t_nachalo <= 0 || t_konec <= 0 || t_nachalo >= t_konec || isNaN(Kz) || Kz < 1) {
-                document.getElementById('P1_result').textContent = 'Помилка введення!';
-                document.getElementById('D_external_result').textContent = '—';
-                document.getElementById('Dose_result').textContent = 'Перевірте дані.';
-                updateDecayChart(0, 0, 0); 
-                return;
-            }
-
-            const n = N_COEFFICIENT;
-            // 1. Розрахунок P1. Формула: P1 = Pt * t^n
-            const P1 = Pt * Math.pow(t_izmereniya, n);
-
-            // 2. Розрахунок Дози D на відкритій місцевості
-            const D_external_mSv = calculateDoseExternal(P1, t_nachalo, t_konec);
-            
-            // 3. Розрахунок фактичної дози з урахуванням захисту
-            const D_actual_mSv = D_external_mSv / Kz;
-
-
-            document.getElementById('P1_result').textContent = P1.toFixed(2);
-            document.getElementById('D_external_result').textContent = D_external_mSv.toFixed(2);
-            document.getElementById('Dose_result').textContent = D_actual_mSv.toFixed(2);
-
-            updateDecayChart(P1, t_nachalo, t_konec); 
-        }
+        if (t_nach >= t_kon || P1 <= 0 || t_nach <= 0) return 0;
         
-        function clearInputs() {
-            document.getElementById('Pt').value = '0';
-            document.getElementById('t_izmereniya').value = '0';
-            document.getElementById('t_nachalo').value = '0';
-            document.getElementById('t_konec').value = '0';
-            
-            document.getElementById('Kz').value = '1';
+        const D = (P1 / exponent) * (Math.pow(t_kon, exponent) - Math.pow(t_nach, exponent));
 
-            document.getElementById('P1_result').textContent = '-';
-            document.getElementById('D_external_result').textContent = '-';
-            document.getElementById('Dose_result').textContent = '-';
+        return D;
+    }
 
+    function performCalculation() {
+        const Pt = parseFloat(document.getElementById('Pt').value);
+        const t_izmereniya = parseFloat(document.getElementById('t_izmereniya').value);
+        const t_nachalo = parseFloat(document.getElementById('t_nachalo').value);
+        const t_konec = parseFloat(document.getElementById('t_konec').value);
+        const Kz = parseFloat(document.getElementById('Kz').value);
+
+        if (isNaN(Pt) || isNaN(t_izmereniya) || isNaN(t_nachalo) || isNaN(t_konec) || t_izmereniya <= 0 || t_nachalo <= 0 || t_konec <= 0 || t_nachalo >= t_konec || isNaN(Kz) || Kz < 1) {
+            document.getElementById('P1_result').textContent = 'Помилка введення!';
+            document.getElementById('D_external_result').textContent = '—';
+            document.getElementById('Dose_result').textContent = 'Перевірте дані.';
             updateDecayChart(0, 0, 0); 
+            return;
         }
 
-        /**
-         * Створення/оновлення графіку спаду потужності дози
-         */
-        function updateDecayChart(P1_value, t_nachalo_val, t_konec_val) {
-            const chartLabels = [];
-            const chartData = [];
-            const n = N_COEFFICIENT;
-            const maxHours = 720; // 30 днів
+        const n = N_COEFFICIENT;
+        const P1 = Pt * Math.pow(t_izmereniya, n);
 
-            for (let t = 1; t <= maxHours; t++) {
-                chartLabels.push(t.toString());
-                if (P1_value > 0) {
-                    const Pt_at_t = P1_value * Math.pow(t, -n);
-                    chartData.push(Pt_at_t.toFixed(2));
-                } else {
-                    chartData.push(0);
-                }
-            }
+        const D_external_mSv = calculateDoseExternal(P1, t_nachalo, t_konec);
+        const D_actual_mSv = D_external_mSv / Kz;
 
-            const ctx = document.getElementById('decayChart').getContext('2d');
+        document.getElementById('P1_result').textContent = P1.toFixed(2);
+        document.getElementById('D_external_result').textContent = D_external_mSv.toFixed(2);
+        document.getElementById('Dose_result').textContent = D_actual_mSv.toFixed(2);
 
-            let backgroundColor;
-            if (t_nachalo_val > 0 && t_konec_val > 0 && t_nachalo_val < t_konec_val) {
-                backgroundColor = Array(chartLabels.length).fill('rgba(92, 184, 92, 0.2)'); // Зелений
-                for (let i = t_nachalo_val -1; i < t_konec_val && i < chartLabels.length; i++) {
-                    backgroundColor[i] = 'rgba(240, 173, 78, 0.4)'; // Жовто-гарячий для діапазону
-                }
+        updateDecayChart(P1, t_nachalo, t_konec); 
+    }
+    
+    function clearInputs() {
+        document.getElementById('Pt').value = '0';
+        document.getElementById('t_izmereniya').value = '0';
+        document.getElementById('t_nachalo').value = '0';
+        document.getElementById('t_konec').value = '0';
+        
+        document.getElementById('Kz').value = '1';
+
+        document.getElementById('P1_result').textContent = '-';
+        document.getElementById('D_external_result').textContent = '-';
+        document.getElementById('Dose_result').textContent = '-';
+
+        updateDecayChart(0, 0, 0); 
+    }
+
+    /**
+     * Створення/оновлення графіку спаду потужності дози (адаптовано під темну тему)
+     */
+    function updateDecayChart(P1_value, t_nachalo_val, t_konec_val) {
+        const chartLabels = [];
+        const chartData = [];
+        const n = N_COEFFICIENT;
+        const maxHours = 720; 
+
+        for (let t = 1; t <= maxHours; t++) {
+            chartLabels.push(t.toString());
+            if (P1_value > 0) {
+                const Pt_at_t = P1_value * Math.pow(t, -n);
+                chartData.push(Pt_at_t.toFixed(2));
             } else {
-                backgroundColor = 'rgba(92, 184, 92, 0.2)'; 
+                chartData.push(0);
             }
+        }
 
+        const ctx = document.getElementById('decayChart').getContext('2d');
 
-            if (decayChart) {
-                decayChart.data.labels = chartLabels;
-                decayChart.data.datasets[0].data = chartData;
-                decayChart.data.datasets[0].backgroundColor = backgroundColor;
-                decayChart.update('none');
-            } else {
-                decayChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{
-                            label: 'Потужність дози (мЗв/год)',
-                            data: chartData,
-                            borderColor: 'rgba(92, 184, 92, 1)',
-                            backgroundColor: backgroundColor, 
-                            borderWidth: 1,
-                            pointRadius: 0,
-                            fill: true,
-                        }]
+        let backgroundColor;
+        if (t_nachalo_val > 0 && t_konec_val > 0 && t_nachalo_val < t_konec_val) {
+            backgroundColor = Array(chartLabels.length).fill('rgba(92, 184, 92, 0.1)'); // Зелений фон для АЕС
+            for (let i = t_nachalo_val - 1; i < t_konec_val && i < chartLabels.length; i++) {
+                backgroundColor[i] = 'rgba(240, 173, 78, 0.3)'; // Помаранчевий/жовто-гарячий для діапазону
+            }
+        } else {
+            backgroundColor = 'rgba(92, 184, 92, 0.1)'; 
+        }
+
+        if (decayChart) {
+            decayChart.data.labels = chartLabels;
+            decayChart.data.datasets[0].data = chartData;
+            decayChart.data.datasets[0].backgroundColor = backgroundColor;
+            decayChart.update('none');
+        } else {
+            decayChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Потужність дози (мЗв/год)',
+                        data: chartData,
+                        borderColor: 'rgba(92, 184, 92, 1)',
+                        backgroundColor: backgroundColor, 
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: {
+                         duration: 0 
                     },
-                    options: {
-                        responsive: true,
-                         animation: {
-                             duration: 0 
-                        },
-                        scales: {
-                            x: {
-                                type: 'category',
-                                title: {
-                                    display: true,
-                                    text: 'Час після аварії (години)'
-                                },
-                                ticks: {
-                                    autoSkip: true,
-                                    maxTicksLimit: 20
-                                }
+                    scales: {
+                        x: {
+                            type: 'category',
+                            title: {
+                                display: true,
+                                text: 'Час після аварії (години)',
+                                color: '#e2e8f0'
                             },
-                            y: {
-                                type: 'logarithmic',
-                                title: {
-                                    display: true,
-                                    text: 'Потужність дози (мЗв/год)'
-                                },
-                                min: 0.1, 
-                                ticks: {
-                                    callback: function(value, index, values) {
-                                        return value >= 1 ? value.toFixed(0) : value.toFixed(1);
-                                    }
-                                }
+                            grid: {
+                                color: '#232d42' // Темна сітка
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 20,
+                                color: '#a0aec0'
                             }
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    title: function(context) {
-                                        return `Година: ${context[0].label}`;
-                                    },
-                                    label: function(context) {
-                                        return `Потужність: ${context.raw} мЗв/год`;
-                                    }
+                        y: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'Потужність дози (мЗв/год)',
+                                color: '#e2e8f0'
+                            },
+                            grid: {
+                                color: '#232d42' // Темна сітка
+                            },
+                            min: 0.1, 
+                            ticks: {
+                                color: '#a0aec0',
+                                callback: function(value, index, values) {
+                                    return value >= 1 ? value.toFixed(0) : value.toFixed(1);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1a2333',
+                            titleColor: '#ffd700',
+                            bodyColor: '#ffffff',
+                            borderColor: '#ffd700',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Година: ${context[0].label}`;
+                                },
+                                label: function(context) {
+                                    return `Потужність: ${context.raw} мЗв/год`;
                                 }
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         }
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateDecayChart(0, 0, 0); 
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDecayChart(0, 0, 0); 
+    });
+</script>
 
 </body>
 </html>
